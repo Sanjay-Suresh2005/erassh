@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERASH - Erasure & Certification System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>🔒 ERASH</h1>
+                <p class="subtitle">Secure Disk Erasure & Blockchain Certification</p>
+            </div>
+            <div class="header-actions">
+                <button id="ledgerStatsBtn" class="btn btn-secondary">📊 Ledger Stats</button>
+                <button id="systemInfoBtn" class="btn btn-secondary">ℹ️ System Info</button>
+            </div>
+        </header>
+
+        <!-- Safety Warning Banner -->
+        <div class="warning-banner">
+            <strong>⚠️ CRITICAL WARNING:</strong> Disk wiping is IRREVERSIBLE! All data will be permanently destroyed.
+            For demos, use simulated mode or virtual disks only.
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Control Panel -->
+            <aside class="control-panel">
+                <h2>Control Panel</h2>
+                
+                <!-- Device Type Filter -->
+                <div class="control-section">
+                    <h3>Device Type</h3>
+                    <div class="device-type-filters">
+                        <button class="filter-btn active" data-type="all">All Devices</button>
+                        <button class="filter-btn" data-type="HDD">🗄️ HDD</button>
+                        <button class="filter-btn" data-type="SSD">💾 SSD</button>
+                        <button class="filter-btn" data-type="USB">🔌 USB</button>
+                        <button class="filter-btn" data-type="Virtual">💻 Virtual</button>
+                    </div>
+                </div>
+
+                <!-- Wipe Method -->
+                <div class="control-section">
+                    <h3>Wipe Method</h3>
+                    <select id="wipeMethod" class="form-select">
+                        <option value="dodshort">DoD 5220.22-M (3 passes) - Fast</option>
+                        <option value="dod">DoD 5220.22-M (7 passes)</option>
+                        <option value="gutmann">Gutmann (35 passes) - Thorough</option>
+                        <option value="random">Random Data (1 pass) - Quick</option>
+                        <option value="zero">Zero Fill (1 pass) - Quick</option>
+                    </select>
+                </div>
+
+                <!-- Mode Selection -->
+                <div class="control-section">
+                    <h3>Operation Mode</h3>
+                    <div class="mode-selection">
+                        <label class="radio-label">
+                            <input type="radio" name="mode" value="simulated" checked>
+                            <span>🔬 Simulated (Demo Mode)</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="mode" value="real">
+                            <span>⚠️ Real Erasure (DANGEROUS)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Blockchain Option -->
+                <div class="control-section">
+                    <h3>Certification</h3>
+                    <div class="mode-selection">
+                        <label class="radio-label">
+                            <input type="radio" name="certMode" value="certificate-only" checked>
+                            <span>📄 Certificate Only</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="certMode" value="blockchain">
+                            <span>⛓️ Record on Blockchain</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Verification Section -->
+                <div class="control-section">
+                    <h3>Verification</h3>
+                    <input type="text" id="verifySerial" class="form-input" placeholder="Enter device serial number">
+                    <button id="verifyBtn" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+                        🔍 Verify by Serial
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Main Area -->
+            <main class="main-area">
+                <!-- Device List -->
+                <section class="device-list-section">
+                    <div class="section-header">
+                        <h2>Available Devices</h2>
+                        <div class="header-actions">
+                            <button id="scanDevicesBtn" class="btn btn-primary">🔍 Scan All Devices</button>
+                            <button id="refreshDevicesBtn" class="btn btn-secondary">🔄 Refresh</button>
+                        </div>
+                    </div>
+                    
+                    <div id="scanStatus" class="scan-status" style="display: none;">
+                        <div class="scan-animation">📡 Scanning storage devices...</div>
+                    </div>
+                    
+                    <div id="deviceList" class="device-list">
+                        <div class="loading">Click "Scan All Devices" to detect storage devices</div>
+                    </div>
+                </section>
+
+                <!-- Active Operations -->
+                <section class="operations-section">
+                    <h2>Active Operations</h2>
+                    <div id="operationsList" class="operations-list">
+                        <div class="no-operations">No active operations</div>
+                    </div>
+                </section>
+
+                <!-- Log Viewer -->
+                <section class="log-section">
+                    <div class="section-header">
+                        <h2>Operation Logs</h2>
+                        <button id="clearLogsBtn" class="btn btn-secondary">🗑️ Clear</button>
+                    </div>
+                    <div id="logViewer" class="log-viewer">
+                        <div class="log-empty">Select a device and start an operation to view logs</div>
+                    </div>
+                </section>
+
+                <!-- Certificates -->
+                <section class="certificates-section">
+                    <h2>Generated Certificates</h2>
+                    <div id="certificatesList" class="certificates-list">
+                        <div class="no-certificates">No certificates generated yet</div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <h2>⚠️ Confirm Disk Erasure</h2>
+            <div class="modal-body">
+                <p><strong>WARNING: This operation is IRREVERSIBLE!</strong></p>
+                <p>You are about to erase:</p>
+                <div id="confirmDeviceInfo" class="device-info-modal"></div>
+                <p>Mode: <strong id="confirmMode"></strong></p>
+                <p>Method: <strong id="confirmMethod"></strong></p>
+                <br>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="confirmCheckbox">
+                    <span>I understand that this action will permanently delete all data</span>
+                </label>
+            </div>
+            <div class="modal-footer">
+                <button id="confirmCancelBtn" class="btn btn-secondary">Cancel</button>
+                <button id="confirmEraseBtn" class="btn btn-danger" disabled>Start Erasure</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Info Modal -->
+    <div id="systemInfoModal" class="modal">
+        <div class="modal-content">
+            <h2>ℹ️ System Information</h2>
+            <div class="modal-body" id="systemInfoContent">
+                <div class="loading">Loading system information...</div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary modal-close">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ledger Stats Modal -->
+    <div id="ledgerStatsModal" class="modal">
+        <div class="modal-content">
+            <h2>📊 Ledger Statistics</h2>
+            <div class="modal-body" id="ledgerStatsContent">
+                <div class="loading">Loading ledger statistics...</div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary modal-close">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Verification Results Modal -->
+    <div id="verificationModal" class="modal">
+        <div class="modal-content">
+            <h2>🔍 Verification Results</h2>
+            <div class="modal-body" id="verificationContent">
+                <div class="loading">Verifying...</div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary modal-close">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
