@@ -178,7 +178,7 @@ class CertificateGenerator:
         story.append(Spacer(1, 0.2 * inch))
         
         # Generate QR Code with verification URL
-        verification_url = f"https://verify.erash.local/cert/{cert_id}"
+        verification_url = f"http://verify.erash.local/cert/{cert_id}"
         qr_data = {
             'cert_id': cert_id,
             'serial': device_info.get('serial', 'N/A'),
