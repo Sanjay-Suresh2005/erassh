@@ -40,7 +40,15 @@ class WipeService:
                     # Only include disks, not partitions at top level
                     if device.get('type') != 'disk':
                         continue
-                    
+
+                    # Exclude in-memory / pseudo block devices that look like disks
+                    # (zram, ram, loop, sr/cdrom). These are not physical storage
+                    # targets for wiping and confuse the UI.
+                    dev_name = (device.get('name') or '').lower()
+                    dev_model = (device.get('model') or '').lower()
+                    if dev_name.startswith(('zram', 'ram', 'loop', 'sr')) or 'zram' in dev_model:
+                        continue
+
                     # Determine device type
                     dev_type = self._classify_device(device)
                     
