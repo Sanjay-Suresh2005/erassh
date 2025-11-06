@@ -91,22 +91,30 @@ class WipeService:
         tran = (device.get('tran') or '').lower()
         model = (device.get('model') or '').lower()
         name = (device.get('name') or '').lower()
-        
+
         # Check for virtual/loop devices
         if 'loop' in name or 'virtual' in model or 'vbox' in model or 'vmware' in model:
             return 'Virtual'
-        
-        # Check transport type
-        if tran in ['usb']:
+
+        # Transport-based checks
+        # USB devices should be classified as USB
+        if 'usb' in tran or 'usb' in model:
             return 'USB'
-        
-        # Check rotation (0 = SSD, 1 = HDD)
-        if device.get('rota') == '0':
+
+        # NVMe transport is almost always SSD
+        if 'nvme' in tran or 'nvme' in model:
             return 'SSD'
-        elif device.get('rota') == '1':
+
+        # lsblk may return rota as '0'/'1', 0/1, True/False, or None.
+        # Normalize to a string and compare robustly.
+        rota_val = device.get('rota')
+        rota_str = str(rota_val).lower() if rota_val is not None else ''
+        if rota_str in ('0', 'false'):
+            return 'SSD'
+        elif rota_str in ('1', 'true'):
             return 'HDD'
-        
-        # Default classification
+
+        # Fall back to model-based heuristics
         if 'ssd' in model:
             return 'SSD'
         elif 'usb' in model or 'flash' in model:
