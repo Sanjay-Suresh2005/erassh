@@ -65,8 +65,9 @@ class WipeService:
                     
                     device_info = {
                         'name': f"/dev/{device['name']}",
-                        'model': device.get('model', 'Unknown').strip(),
-                        'serial': device.get('serial', 'N/A').strip(),
+                        # guard against None values from lsblk (use or '' / or 'Unknown')
+                        'model': (device.get('model') or 'Unknown').strip(),
+                        'serial': (device.get('serial') or 'N/A').strip(),
                         'size': device.get('size', 'Unknown'),
                         'type': dev_type,
                         'rotational': device.get('rota', '0') == '1',
@@ -85,9 +86,11 @@ class WipeService:
     
     def _classify_device(self, device):
         """Classify device as HDD, SSD, USB, or Virtual"""
-        tran = device.get('tran', '').lower()
-        model = device.get('model', '').lower()
-        name = device.get('name', '').lower()
+        # lsblk can return null (None) for some fields on certain systems.
+        # Normalize to empty strings to avoid AttributeError on .lower().
+        tran = (device.get('tran') or '').lower()
+        model = (device.get('model') or '').lower()
+        name = (device.get('name') or '').lower()
         
         # Check for virtual/loop devices
         if 'loop' in name or 'virtual' in model or 'vbox' in model or 'vmware' in model:
